@@ -1,0 +1,86 @@
+{
+  "description": "Universal field-testing rules. The agent reads this before testing any form field. It maps a field's inferred TYPE (from its label, name attribute, placeholder, or input type) to validation expectations and the minimum set of test cases to try.",
+
+  "fieldTypes": {
+    "name": {
+      "matchHints": ["name", "full name", "first name", "last name", "staff name", "contact name"],
+      "validRule": "Alphabetic, spaces, hyphens, apostrophes allowed. Minimum 2 alphabetic characters. Pure numbers or symbols-only are invalid.",
+      "testCases": [
+        { "case": "valid", "input": "Test User", "expect": "accepted" },
+        { "case": "too_short", "input": "A", "expect": "rejected_or_warning" },
+        { "case": "numeric_only", "input": "12345", "expect": "rejected" },
+        { "case": "empty_required", "input": "", "expect": "rejected" },
+        { "case": "special_chars", "input": "<script>alert(1)</script>", "expect": "rejected_or_sanitized" }
+      ]
+    },
+    "email": {
+      "matchHints": ["email", "e-mail"],
+      "validRule": "Must match standard email format: local@domain.tld. Must be unique if the field enforces no-duplicates.",
+      "testCases": [
+        { "case": "valid", "input": "generate_unique", "expect": "accepted" },
+        { "case": "malformed_double_at", "input": "user@@test.com", "expect": "rejected" },
+        { "case": "missing_at", "input": "usertest.com", "expect": "rejected" },
+        { "case": "empty_required", "input": "", "expect": "rejected" },
+        { "case": "duplicate", "input": "reuse_previous_run_email", "expect": "rejected_as_duplicate" }
+      ]
+    },
+    "phone": {
+      "matchHints": ["phone", "mobile", "whatsapp", "contact number"],
+      "validRule": "Numeric only, matches the country's expected digit length (confirm from placeholder/pattern if shown, e.g. 10 digits for India).",
+      "testCases": [
+        { "case": "valid", "input": "generate_valid_10_digit", "expect": "accepted" },
+        { "case": "too_short", "input": "123", "expect": "rejected" },
+        { "case": "alphabetic", "input": "abcdefghij", "expect": "rejected" },
+        { "case": "empty_required", "input": "", "expect": "rejected" }
+      ]
+    },
+    "numeric": {
+      "matchHints": ["amount", "quantity", "age", "count", "number"],
+      "validRule": "Digits only, optionally decimal. Alphabetic characters must be rejected.",
+      "testCases": [
+        { "case": "valid", "input": "generate_valid_number", "expect": "accepted" },
+        { "case": "alphabetic", "input": "abc", "expect": "rejected" },
+        { "case": "negative_if_disallowed", "input": "-1", "expect": "rejected_if_context_disallows_negative" },
+        { "case": "empty_required", "input": "", "expect": "rejected" }
+      ]
+    },
+    "dropdown_select": {
+      "matchHints": ["role", "district", "area", "category", "status", "type"],
+      "validRule": "Must choose one of the ACTUAL options exposed by the element. Never invent a free-text value for a dropdown.",
+      "testCases": [
+        { "case": "valid", "input": "pick_first_real_option", "expect": "accepted" },
+        { "case": "required_but_unselected", "input": null, "expect": "rejected_if_required" }
+      ]
+    },
+    "password": {
+      "matchHints": ["password", "passcode", "pin"],
+      "validRule": "Meets the app's stated complexity rule if shown (length/char-class hints near the field). Default assumption if none shown: 8+ chars, at least 1 letter and 1 number.",
+      "testCases": [
+        { "case": "valid", "input": "generate_valid_password", "expect": "accepted" },
+        { "case": "too_short", "input": "ab1", "expect": "rejected" },
+        { "case": "empty_required", "input": "", "expect": "rejected" }
+      ]
+    },
+    "confirmPassword": {
+      "matchHints": ["confirm password", "confirm new password", "re-enter password", "retype password", "repeat password", "verify password"],
+      "validRule": "Must match the primary password field exactly. Mismatches must be rejected.",
+      "testCases": [
+        { "case": "valid", "input": "matches_password_field", "expect": "accepted" },
+        { "case": "mismatch", "input": "different_value_123", "expect": "rejected_mismatch" },
+        { "case": "empty_required", "input": "", "expect": "rejected" }
+      ]
+    },
+    "date": {
+      "matchHints": ["date", "dob", "due", "expiry"],
+      "validRule": "Must be a real calendar date, in the format the field's date picker expects.",
+      "testCases": [
+        { "case": "valid", "input": "generate_valid_future_or_past_date_as_context_requires", "expect": "accepted" },
+        { "case": "invalid_date", "input": "32/13/2026", "expect": "rejected" }
+      ]
+    }
+  },
+
+  "minimumTestCasesPerField": "At minimum, test: (1) one valid value that should be accepted, (2) one invalid value of the type most likely to be mistakenly accepted (wrong character class), (3) empty value if the field is marked required (has * or similar). Do not exceed 5 cases per field unless explicitly asked — this keeps the agent's step budget usable for the full flow, not just one field.",
+
+  "passFailLogic": "A test case passes when the ACTUAL app behavior matches the 'expect' column above — including when the app correctly REJECTS bad input. A test case fails when the app's actual behavior contradicts 'expect' — e.g. accepting a numeric-only name, or rejecting a clearly valid email. Always report which of the two happened and label it clearly: 'validation correctly enforced' vs 'validation bug — invalid input was accepted'."
+}

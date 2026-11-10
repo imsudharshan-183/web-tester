@@ -1,0 +1,37 @@
+{
+  "name": "web-tester",
+  "version": "1.0.0",
+  "description": "Run simple browser checks on a website you own.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "build": "vite build",
+    "dev:client": "vite",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report test-artifacts/playwright-report",
+    "test:monitor": "node src/scripts/monitor.js",
+    "install:browser": "npx playwright install chromium",
+    "login": "node src/scripts/login.js",
+    "generate": "node src/scripts/generate-test.js",
+    "test:recipe": "node src/scripts/run-test.js"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "mongoose": "^9.12.0",
+    "multer": "^2.5.0",
+    "playwright": "^1.65.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "vite": "^8.3.6"
+  }
+}
